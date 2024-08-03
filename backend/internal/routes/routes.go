@@ -9,11 +9,11 @@ import (
 
 func TodoRoutes(router *mux.Router) {
 	router.HandleFunc("/todos/{id}", handler.GetTodo()).Methods(http.MethodGet)
-	router.HandleFunc("/todos", handler.CreateTodos()).Methods(http.MethodPost)
+	router.HandleFunc("/todos/{id}", handler.CreateTodos()).Methods(http.MethodPost)
 }
 
 func UserRoutes(router *mux.Router) {
-	router.HandleFunc("/signup", handler.CreateUser()).Methods(http.MethodPost)
+	router.HandleFunc("/user", handler.CreateUser()).Methods(http.MethodPost)
 }
 
 func Health(router *mux.Router) {

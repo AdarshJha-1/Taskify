@@ -12,8 +12,13 @@ import (
 func main() {
 	router := mux.NewRouter()
 
+	// Health check route
 	routes.Health(router)
+
+	// Todo routes
 	routes.TodoRoutes(router)
+
+	// User routes
 	routes.UserRoutes(router)
 
 	fmt.Println("Server is running...")
