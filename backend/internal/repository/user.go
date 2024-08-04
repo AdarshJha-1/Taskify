@@ -39,3 +39,21 @@ func CheckExistingUser(email, username string) bool {
 	}
 	return true
 }
+
+func GetUser(identifier, password string) (*model.User, error) {
+	filter := bson.M{"$or": []bson.M{
+		{"email": identifier},
+		{"username": identifier},
+	}}
+
+	var user model.User
+	err := userCollection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
