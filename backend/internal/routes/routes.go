@@ -11,6 +11,8 @@ import (
 func TodoRoutes(router *mux.Router) {
 	router.HandleFunc("/todos", middleware.AuthMiddleware(handler.GetTodo)).Methods(http.MethodGet)
 	router.HandleFunc("/todos", middleware.AuthMiddleware(handler.CreateTodos)).Methods(http.MethodPost)
+	router.HandleFunc("/todos/{id}", middleware.AuthMiddleware(handler.DeleteTodo)).Methods(http.MethodDelete)
+	router.HandleFunc("/todos/{id}", middleware.AuthMiddleware(handler.ToggleIsCompletedTodo)).Methods(http.MethodPut)
 }
 
 func UserRoutes(router *mux.Router) {

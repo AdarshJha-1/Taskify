@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/AdarshJha-1/Taskify/backend/internal/model"
@@ -98,7 +97,6 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Checking user password
-	fmt.Println("here", signinUserData, user)
 	isCorrectPassword := utils.CheckPasswordHash(signinUserData.Password, user.Password)
 	if !isCorrectPassword {
 		w.WriteHeader(http.StatusBadRequest)
