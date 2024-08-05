@@ -21,6 +21,7 @@ func main() {
 	// User routes
 	routes.UserRoutes(router)
 
+	// Running serer at post 3000
 	fmt.Println("Server is running...")
 	log.Fatal(http.ListenAndServe(":3000", router))
 }

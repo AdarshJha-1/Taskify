@@ -20,8 +20,10 @@ func CreateTodos(w http.ResponseWriter, r *http.Request) {
 
 	var todo model.Todo
 
+	// Retrieve user ID from the request context
 	id := r.Context().Value(config.UserIDKey).(string)
-	// Converting it from string to bson objectId formate
+
+	// Convert user ID from string to BSON ObjectID format
 	userId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -30,7 +32,7 @@ func CreateTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Getting user input for todo
+	// Decode the request body into the Todo model
 	err = json.NewDecoder(r.Body).Decode(&todo)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -39,15 +41,15 @@ func CreateTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Closing request body
+	// Close the request body
 	defer r.Body.Close()
 
-	// Updating user_id field in todo
+	// Set up the new Todo object
 	todo.Id = primitive.NewObjectID()
 	todo.UserID = userId
 	todo.IsCompleted = false
 
-	// Creating todo by calling CreateTodoForAUser function
+	// Create the Todo in the database
 	result, err := repository.CreateTodoForAUser(todo)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -56,7 +58,7 @@ func CreateTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sending success message with created todo id
+	// Respond with success and the created todo's ID
 	w.WriteHeader(http.StatusCreated)
 	res := response.Response{Status: http.StatusCreated, Message: "Todo created successfully", Data: map[string]interface{}{"data": result}}
 	json.NewEncoder(w).Encode(res)
@@ -67,11 +69,13 @@ func GetTodo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var todos []model.Todo
 
-	// Closing request body
+	// Close the request body
 	defer r.Body.Close()
 
+	// Retrieve user ID from the request context
 	id := r.Context().Value(config.UserIDKey).(string)
-	// Converting it from string to bson objectId formate
+
+	// Convert user ID from string to BSON ObjectID format
 	userId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -80,7 +84,7 @@ func GetTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetching user todos from database by providing user_id
+	// Fetch the todos for the user from the database
 	todos, err = repository.GetTodosOfAUser(userId)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -94,7 +98,8 @@ func GetTodo(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	// Sending success message with all todos of that user
+
+	// Respond with success and the user's todos
 	w.WriteHeader(http.StatusFound)
 	res := response.Response{Status: http.StatusFound, Message: "Todos Founded", Data: map[string]interface{}{"todos": todos}}
 	json.NewEncoder(w).Encode(res)
@@ -104,11 +109,13 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// Closing request body
+	// Close the request body
 	defer r.Body.Close()
 
+	// Retrieve user ID from the request context
 	id := r.Context().Value(config.UserIDKey).(string)
-	// Converting it from string to bson objectId formate
+
+	// Convert user ID from string to BSON ObjectID format
 	userId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -116,7 +123,7 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-
+	// Retrieve the todo ID from the URL parameters and convert it to BSON ObjectID format
 	todoId, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -125,7 +132,7 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetching user todos from database by providing user_id
+	// Delete the todo from the database
 	result, err := repository.DeleteTodoOfAUser(userId, todoId)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -139,7 +146,8 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	// Sending success message with all todos of that user
+
+	// Respond with success and the number of deleted todos
 	w.WriteHeader(http.StatusFound)
 	res := response.Response{Status: http.StatusFound, Message: "Todos Deleted Successfully", Data: map[string]interface{}{"todos deleted": result}}
 	json.NewEncoder(w).Encode(res)
@@ -149,11 +157,13 @@ func ToggleIsCompletedTodo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// Closing request body
+	// Close the request body
 	defer r.Body.Close()
 
+	// Retrieve user ID from the request context
 	id := r.Context().Value(config.UserIDKey).(string)
-	// Converting it from string to bson objectId formate
+
+	// Convert user ID from string to BSON ObjectID format
 	userId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -162,6 +172,7 @@ func ToggleIsCompletedTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieve the todo ID from the URL parameters and convert it to BSON ObjectID format
 	todoId, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -170,7 +181,7 @@ func ToggleIsCompletedTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetching user todos from database by providing user_id
+	// Update the todo's completion status in the database
 	fmt.Println("before")
 	result, err := repository.UpdateIsCompleted(userId, todoId)
 	fmt.Println("after")
@@ -186,7 +197,8 @@ func ToggleIsCompletedTodo(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	// Sending success message with all todos of that user
+
+	// Respond with success and the number of updated todos
 	w.WriteHeader(http.StatusFound)
 	res := response.Response{Status: http.StatusFound, Message: "Todos Updated Successfully", Data: map[string]interface{}{"todos updated": result}}
 	json.NewEncoder(w).Encode(res)

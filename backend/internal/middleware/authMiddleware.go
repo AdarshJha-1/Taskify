@@ -39,6 +39,8 @@ import (
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		// accessing token from cookie
 		token, err := r.Cookie("token")
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -47,6 +49,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		// Verifying JWT token and getting claims
 		claims, err := utils.VerifyJWT(token.Value)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -55,8 +58,11 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		// Extract user ID from claims and set it in the request context
 		userId := claims["user_id"].(string)
 		ctx := context.WithValue(r.Context(), config.UserIDKey, userId)
+
+		// Pass the request to the next handler with the updated context
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
