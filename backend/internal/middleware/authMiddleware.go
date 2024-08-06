@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/AdarshJha-1/Taskify/backend/config"
 	"github.com/AdarshJha-1/Taskify/backend/internal/response"
@@ -44,7 +45,14 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		token, err := r.Cookie("token")
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
-			res := response.Response{Status: http.StatusUnauthorized, Message: "Unauthorized", Data: map[string]interface{}{"error": "Unauthorized"}}
+			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": "Unauthorized"}}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		if time.Now().After(token.Expires) {
+			w.WriteHeader(http.StatusUnauthorized)
+			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": "Cookie Expired"}}
 			json.NewEncoder(w).Encode(res)
 			return
 		}
@@ -53,7 +61,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		claims, err := utils.VerifyJWT(token.Value)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			res := response.Response{Status: http.StatusUnauthorized, Message: "Unauthorized", Data: map[string]interface{}{"error": err.Error()}}
+			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": err.Error()}}
 			json.NewEncoder(w).Encode(res)
 			return
 		}

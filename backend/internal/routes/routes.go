@@ -18,8 +18,9 @@ func TodoRoutes(router *mux.Router) {
 
 // UserRoutes sets up the routes for user-related operations
 func UserRoutes(router *mux.Router) {
-	router.HandleFunc("/signup", handler.CreateUser).Methods(http.MethodPost)
-	router.HandleFunc("/login", handler.LoginUser).Methods(http.MethodPost)
+	router.HandleFunc("/sign-up", handler.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/sign-in", handler.SignInUser).Methods(http.MethodPost)
+	router.HandleFunc("/sign-out", handler.SignOutUser).Methods(http.MethodPost)
 }
 
 // Health sets up a route to check the health of the service

@@ -21,7 +21,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		res := response.Response{Status: http.StatusBadRequest, Message: "Invalid input", Data: map[string]interface{}{"error": err.Error()}}
+		res := response.Response{Status: http.StatusBadRequest, Success: false, Message: "Invalid input", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -33,7 +33,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userExists := repository.CheckExistingUser(user.Email, user.Username)
 	if userExists {
 		w.WriteHeader(http.StatusConflict)
-		res := response.Response{Status: http.StatusConflict, Message: "User already exists", Data: map[string]interface{}{"error": "User already exists"}}
+		res := response.Response{Status: http.StatusConflict, Success: false, Message: "User already exists", Data: map[string]interface{}{"error": "User already exists"}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -42,7 +42,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		res := response.Response{Status: http.StatusInternalServerError, Message: "Internal Server Error", Data: map[string]interface{}{"error": err.Error()}}
+		res := response.Response{Status: http.StatusInternalServerError, Success: false, Message: "Internal Server Error", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -57,18 +57,18 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	result, err := repository.CreateUser(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		res := response.Response{Status: http.StatusInternalServerError, Message: "Failed to create user", Data: map[string]interface{}{"error": err.Error()}}
+		res := response.Response{Status: http.StatusInternalServerError, Success: false, Message: "Failed to create user", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
 	// Sending success message with newly create user id
 	w.WriteHeader(http.StatusCreated)
-	res := response.Response{Status: http.StatusCreated, Message: "User created successfully", Data: map[string]interface{}{"data": result}}
+	res := response.Response{Status: http.StatusCreated, Success: true, Message: "User created successfully", Data: map[string]interface{}{"data": result}}
 	json.NewEncoder(w).Encode(res)
 }
 
-func LoginUser(w http.ResponseWriter, r *http.Request) {
+func SignInUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Creating local user object
@@ -78,7 +78,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&signinUserData)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		res := response.Response{Status: http.StatusBadRequest, Message: "Invalid input", Data: map[string]interface{}{"error": err.Error()}}
+		res := response.Response{Status: http.StatusBadRequest, Success: false, Message: "Invalid input", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -91,7 +91,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	user, err = repository.GetUser(signinUserData.Identifier, signinUserData.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		res := response.Response{Status: http.StatusNotFound, Message: "User not found", Data: map[string]interface{}{"error": err.Error()}}
+		res := response.Response{Status: http.StatusNotFound, Success: false, Message: "User not found", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -100,7 +100,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	isCorrectPassword := utils.CheckPasswordHash(signinUserData.Password, user.Password)
 	if !isCorrectPassword {
 		w.WriteHeader(http.StatusBadRequest)
-		res := response.Response{Status: http.StatusBadRequest, Message: "Wrong Credentials", Data: map[string]interface{}{"error": "Wrong Credentials"}}
+		res := response.Response{Status: http.StatusBadRequest, Success: false, Message: "Wrong Credentials", Data: map[string]interface{}{"error": "Wrong Credentials"}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -109,7 +109,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.CreateJWT(string(user.Id.Hex()))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		res := response.Response{Status: http.StatusInternalServerError, Message: "Error creating token", Data: map[string]interface{}{"error": err.Error()}}
+		res := response.Response{Status: http.StatusInternalServerError, Success: false, Message: "Error creating token", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
@@ -124,6 +124,25 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
-	res := response.Response{Status: http.StatusOK, Message: "User login successfully", Data: map[string]interface{}{"token": token}}
+	res := response.Response{Status: http.StatusOK, Success: true, Message: "User Signed In successfully", Data: map[string]interface{}{"token": token}}
+	json.NewEncoder(w).Encode(res)
+}
+func SignOutUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Closing request body
+	defer r.Body.Close()
+
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    "",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusOK)
+	res := response.Response{Status: http.StatusOK, Success: true, Message: "User Signed Out successfully"}
 	json.NewEncoder(w).Encode(res)
 }
