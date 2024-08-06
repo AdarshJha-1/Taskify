@@ -1,4 +1,8 @@
+import axios from 'axios';
 import { useState } from 'react'
+import { useSetRecoilState } from 'recoil';
+import { loginState } from '../store/atom';
+import { useNavigate } from 'react-router-dom';
 
 interface FormData {
   identifier: string;
@@ -10,17 +14,42 @@ export default function SignIn() {
     identifier: "",
     password: ""
   })
+  const  setLoginState = useSetRecoilState(loginState)
 
+ const navigate = useNavigate()
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target
     setFormData((prevData) => ({...prevData, [name] : value} ))
   }
 
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(formData);
-    
-  }
+    try {
+      const response = await axios.post(
+        import.meta.env.VITE_BASE_URL + "/sign-in",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      if (!response.data.success){
+        console.error("ERROR::",response.data.message);
+      }else{
+        setLoginState({isLogin: true, token: response.data.data.token});
+        navigate("/dashboard")
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.message);
+      } else {
+        console.error('Unexpected error:', error);
+      }
+    }
+  };
+
   return (
     <div className='flex-grow flex flex-col justify-center items-center gap-10'>
       <h1 className='text-white text-4xl font-medium'>
