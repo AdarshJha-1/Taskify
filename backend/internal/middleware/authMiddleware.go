@@ -50,18 +50,26 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if time.Now().After(token.Expires) {
-			w.WriteHeader(http.StatusUnauthorized)
-			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": "Cookie Expired"}}
-			json.NewEncoder(w).Encode(res)
-			return
-		}
-
 		// Verifying JWT token and getting claims
 		claims, err := utils.VerifyJWT(token.Value)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": err.Error()}}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		exp, ok := claims["exp"].(float64)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": "Invalid expiration claim"}}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		if time.Now().After(time.Unix(int64(exp), 0)) {
+			w.WriteHeader(http.StatusUnauthorized)
+			res := response.Response{Status: http.StatusUnauthorized, Success: false, Message: "Unauthorized", Data: map[string]interface{}{"error": "Cookie Expired"}}
 			json.NewEncoder(w).Encode(res)
 			return
 		}

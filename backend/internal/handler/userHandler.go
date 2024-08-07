@@ -89,13 +89,12 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	// Fetching user from db
 	var user *model.User
 	user, err = repository.GetUser(signinUserData.Identifier, signinUserData.Password)
-	if err != nil {
+	if err != nil && user == nil {
 		w.WriteHeader(http.StatusNotFound)
 		res := response.Response{Status: http.StatusNotFound, Success: false, Message: "User not found", Data: map[string]interface{}{"error": err.Error()}}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-
 	// Checking user password
 	isCorrectPassword := utils.CheckPasswordHash(signinUserData.Password, user.Password)
 	if !isCorrectPassword {

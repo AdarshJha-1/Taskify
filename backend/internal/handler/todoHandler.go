@@ -100,8 +100,8 @@ func GetTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with success and the user's todos
-	w.WriteHeader(http.StatusFound)
-	res := response.Response{Status: http.StatusFound, Success: true, Message: "Todos Founded", Data: map[string]interface{}{"todos": todos}}
+	w.WriteHeader(http.StatusOK)
+	res := response.Response{Status: http.StatusOK, Success: true, Message: "Todos Founded", Data: map[string]interface{}{"todos": todos}}
 	json.NewEncoder(w).Encode(res)
 }
 

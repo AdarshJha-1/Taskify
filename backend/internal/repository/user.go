@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/AdarshJha-1/Taskify/backend/config"
@@ -64,12 +65,14 @@ func GetUser(identifier, password string) (*model.User, error) {
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// No user found with the given identifier
-			return nil, nil
+			return nil, fmt.Errorf("user not found")
 		}
 		// An error occurred during the query
+		fmt.Println("2")
 		return nil, err
 	}
 
 	// Return the retrieved user
+	fmt.Println("3")
 	return &user, nil
 }
