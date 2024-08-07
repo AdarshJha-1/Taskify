@@ -13,6 +13,6 @@ useEffect(() => {
     }
 }, [isLogin, token, navigate])
   return (
-    <div>{children}</div>
+    <div className="flex-grow flex">{children}</div>
   )
 }
