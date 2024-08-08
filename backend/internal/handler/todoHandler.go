@@ -148,8 +148,8 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with success and the number of deleted todos
-	w.WriteHeader(http.StatusFound)
-	res := response.Response{Status: http.StatusFound, Success: true, Message: "Todos Deleted Successfully", Data: map[string]interface{}{"todos deleted": result}}
+	w.WriteHeader(http.StatusOK)
+	res := response.Response{Status: http.StatusOK, Success: true, Message: "Todos Deleted Successfully", Data: map[string]interface{}{"todos deleted": result}}
 	json.NewEncoder(w).Encode(res)
 }
 
@@ -199,7 +199,7 @@ func ToggleIsCompletedTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with success and the number of updated todos
-	w.WriteHeader(http.StatusFound)
-	res := response.Response{Status: http.StatusFound, Success: true, Message: "Todos Updated Successfully", Data: map[string]interface{}{"todos updated": result}}
+	w.WriteHeader(http.StatusOK)
+	res := response.Response{Status: http.StatusOK, Success: true, Message: "Todos Updated Successfully", Data: map[string]interface{}{"todos updated": result}}
 	json.NewEncoder(w).Encode(res)
 }
