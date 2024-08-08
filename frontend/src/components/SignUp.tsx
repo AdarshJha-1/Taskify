@@ -1,15 +1,12 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface FormData {
-  username: string;
-  email: string;
-  password: string;
-}
+import { SignUpForm } from "../types/userTypes";
+import { useRecoilValue } from "recoil";
+import { loginState } from "../store/atom";
 
 export default function SignUp() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<SignUpForm>({
     username: "",
     email: "",
     password: "",
@@ -48,6 +45,27 @@ export default function SignUp() {
       }
     }
   };
+
+
+  const { isLogin, token } = useRecoilValue(loginState);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (isLogin && token) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      setIsLoading(false);
+    }
+  }, [isLogin, token, navigate]);
+
+  if (isLoading) {
+    <div className="w-full flex-grow bg-black flex flex-col items-center justify-center text-white"></div>;
+    return (
+      <div className="w-full flex-grow bg-black flex flex-col items-center justify-center text-white">
+        <h1>loading...</h1>
+      </div>
+    );
+  }
   return (
     <div className="flex-grow flex flex-col justify-center items-center gap-10">
       <h1 className="text-white text-4xl font-medium">Sign Up</h1>
